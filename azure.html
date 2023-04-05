@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="" type="" href="" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azure Language Translation</title>
+  <style>
+    body {
+      background-color: #e14761;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Language Translation API using Azure</h1>
+  <form>
+    <p><label for="lang">Select a language to translate from: </p>
+    <select name="langFrom" id="langFrom" class="langFrom">
+      <option value="">Select</option>
+      <option value="en">English</option>
+      <option value="ta">Tamil</option>
+      <option value="hi">Hindi</option>
+      <option value="es">Spanish</option>
+    </select>
+    <p><label for="langTo">Select a language to translate to: </p>
+    <select name="langTo" id="langTo" class="langTo">
+    </select>
+    <p><label for="inputText">
+        Enter text to translate:
+      </label></p>
+    <textarea id="inputText" name="inputText" rows="5" cols="50" class="inputText"></textarea>
+    <br>
+    <button class="btn">Translate</button>
+    <p><label for="outputText">
+        Translated text:
+      </label></p>
+    <textarea class="outputText" id="outputText" name="outputText" rows="5" cols="50" readonly disabled></textarea>
+  </form>
+  <script type="module" src="/main.js"></script>
+  <script>
+    const languageTo = document.querySelector("#langTo");
+
+    fetch('ENTER-API-LINK-FOR-LANGUAGE-LIST', {
+      method: 'GET',
+      json: true
+    }).then(res => res.json()).then(data => {
+      const languages = data.translation;
+      for (const property in languages) {
+        languageTo.options[languageTo.options.length] = new Option(`${languages[property]['name']} - ${languages[property]['nativeName']}`, property);
+      }
+    }).catch(err => console.log(err))
+
+    function generateUUID() { // Public Domain/MIT
+      var d = new Date().getTime();//Timestamp
+      var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16;//random number between 0 and 16
+        if (d > 0) {//Use timestamp until depleted
+          r = (d + r) % 16 | 0;
+          d = Math.floor(d / 16);
+        } else {//Use microseconds since page-load if supported
+          r = (d2 + r) % 16 | 0;
+          d2 = Math.floor(d2 / 16);
+        }
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
+    const key = 'ENTER-KEY',
+      inputText = document.querySelector("#inputText"),
+      selectFrom = document.querySelector("#langFrom"),
+      selectTo = document.querySelector("#langTo"),
+      output = document.querySelector('#outputText'),
+      translateBtn = document.querySelector(".btn");
+
+
+    translateBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      let apiUrl = `#ENTER-API-LINK# &from=${selectFrom.value}&to=${selectTo.value}`;
+      console.log(apiUrl);
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': key,
+          'Ocp-Apim-Subscription-Region': 'ENTER-REGION',
+          'Content-type': 'application/json',
+          'X-ClientTraceId': generateUUID()
+        },
+        body: JSON.stringify([{
+          'text': inputText.value
+        }]),
+        json: true
+      }).then(res => res.json()).then(data => {
+        console.log(data[0].translations[0].text);
+        output.value = data[0].translations[0].text;
+      }).catch(err => console.log(err))
+    });
+  </script>
+</body>
+
+</html>
